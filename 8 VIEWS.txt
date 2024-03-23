@@ -1,0 +1,73 @@
+-- Customer Orders View:
+-- Purpose: Display information about customers and their associated orders.
+-- SQL:
+CREATE VIEW customer_orders_view AS
+SELECT c.customer_id, c.name AS customer_name, o.order_id, p.name AS product_name, o.quantity, o.purchase_date
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+JOIN products p ON o.product_id = p.product_id;
+
+-- Available Products View:
+-- Purpose: Show a list of available products for purchase.
+-- SQL:
+CREATE VIEW available_products_view AS
+SELECT * FROM products
+WHERE availability = true;
+
+-- HighValueOrders View:
+-- Purpose: Display orders with a total value exceeding a specified amount.
+-- SQL:
+CREATE VIEW high_value_orders_view AS
+SELECT o.order_id, c.name AS customer_name, SUM(p.price * o.quantity) AS total_value
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+JOIN products p ON o.product_id = p.product_id
+GROUP BY o.order_id, c.name
+HAVING SUM(p.price * o.quantity) > 100;
+
+-- RecentOrders View:
+-- Purpose: Show the most recent orders.
+-- SQL:
+CREATE VIEW recent_orders_view AS
+SELECT TOP 10 * FROM orders
+ORDER BY purchase_date DESC;
+
+-- UnshippedOrders View:
+-- Purpose: Display orders that have not been shipped.
+-- SQL:
+CREATE VIEW unshipped_orders_view AS
+SELECT o.order_id, c.name AS customer_name, p.name AS product_name, o.quantity
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+JOIN products p ON o.product_id = p.product_id
+WHERE o.order_id NOT IN (SELECT order_id FROM order_delivery);
+
+-- StandardDeliveryOrders View:
+-- Purpose: Show orders with standard delivery and associated delivery details.
+-- SQL:
+CREATE VIEW standard_delivery_orders_view AS
+SELECT o.order_id, c.name AS customer_name, dm.name AS delivery_method, dm.price AS delivery_cost
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+JOIN order_delivery od ON o.order_id = od.order_id
+JOIN delivery_methods dm ON od.method_id = dm.method_id
+WHERE dm.name = 'Standard';
+
+-- ProductsWithLowStock View:
+-- Purpose: Display products with low stock levels.
+-- SQL:
+CREATE VIEW products_with_low_stock_view AS
+SELECT * FROM products
+WHERE availability = true AND name IN ('Product A', 'Product C');
+
+-- TotalSalesByProduct View:
+-- Purpose: Show total sales for each product.
+-- SQL:
+CREATE VIEW total_sales_by_product_view AS
+SELECT p.name AS product_name, SUM(o.quantity) AS total_sales
+FROM orders o
+JOIN products p ON o.product_id = p.product_id
+GROUP BY p.name;
+
+
+
